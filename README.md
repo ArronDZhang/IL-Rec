@@ -1,2 +1,1 @@
-# IL-Rec
-This is the official implementation reference of IL-Rec from ICDM2025
+The offcial implementation of IL-Rec is expected to be released by the end of November, 2025.
