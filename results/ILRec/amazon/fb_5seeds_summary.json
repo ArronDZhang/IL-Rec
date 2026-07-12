@@ -1,0 +1,50 @@
+{
+  "combined_termination_reasons": {
+    "distance": 445,
+    "low_reward": 54,
+    "max_turn": 1
+  },
+  "config": {
+    "discount": 0.5,
+    "env": "AmazonEnv-v0",
+    "eval_action_selection": "sample",
+    "eval_logit_clamp": 1.0,
+    "mixed_replay_env_priority_scale": 0.05,
+    "mixed_replay_sampling": "global_priority",
+    "policy_logit_clamp": 1.0,
+    "policy_logit_clamp_mode": "tanh",
+    "setting": "FB",
+    "train_action_selection": "sample",
+    "train_actor_bias_clamp": 5.0,
+    "train_actor_row_norm_project": 10.0,
+    "train_advantage_clip": 5.0,
+    "train_episodes": 100000,
+    "train_normalize_advantages": true
+  },
+  "dataset": "amazon",
+  "env": "AmazonEnv-v0",
+  "eval_action_selection": "sample",
+  "eval_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "evaluation_scope": "5_eval_seeds_on_standard_100users",
+  "mean_avg_length": 11.66,
+  "mean_avg_return": 53.202,
+  "mean_avg_reward": 4.562101797565839,
+  "mean_repeat_after_first_rate": 0.0007075519018407441,
+  "mean_unique_actions": 1114.6,
+  "mean_unique_first_actions": 99.8,
+  "method": "ILRec",
+  "pooled_avg_reward": 4.562778730703259,
+  "pooled_total_length": 5830.0,
+  "pooled_total_return": 26601.0,
+  "seed_count": 5,
+  "setting": "FB",
+  "std_avg_length": 0.7568619424967806,
+  "std_avg_return": 3.5859693250221754,
+  "std_avg_reward": 0.022974268382047143
+}

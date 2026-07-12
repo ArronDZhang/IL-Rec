@@ -1,0 +1,4 @@
+env: AmazonEnv-v0
+dataset: amazon
+policy_logit_clamp: 1.0
+eval_logit_clamp: 1.0

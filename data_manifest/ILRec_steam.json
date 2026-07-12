@@ -1,0 +1,21 @@
+{
+  "dataset": "steam",
+  "required_external_files": [
+    "env/steam/steam_train.npy",
+    "env/steam/steam_test.npy",
+    "env/steam/train_distance_mat.pickle",
+    "env/steam/test_distance_mat.pickle",
+    "env/steam/steam_embedding_task.pt",
+    "env/steam/datamaps.json",
+    "env/steam/steam_grounding_cache.json",
+    "environments/ILRec/data/steam/demo_gpt35.pkl",
+    "environments/ILRec/data/steam/item.csv",
+    "environments/ILRec/data/steam/test.csv",
+    "environments/ILRec/data/steam/train.csv",
+    "environments/ILRec/data/steam/user.csv"
+  ],
+  "notes": [
+    "Large reward matrices, distance matrices, embeddings, and demo buffers are external artifacts and are not committed.",
+    "The public repository includes only smoke data under environments/ILRec/data_smoke."
+  ]
+}

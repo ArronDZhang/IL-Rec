@@ -2,21 +2,21 @@
 __pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache/
 
 .idea/
 
-*.csv
 # *.txt
 *.ascii
-
-environments/
 
 saved_models/
 visualization/figures
 visualization/results
 
 *.zip
+*.pt
 *.pth
+*.ckpt
 
 *.egg*
 events.*
@@ -39,3 +39,13 @@ src/**/*.txt
 data_analysis/**/*.png
 data_analysis/**/*.pdf
 results_for_paper/**/*.pdf
+
+# ILRec large local artifacts. Keep these outside git and document their paths
+# in README.md.
+env/**/*.npy
+env/**/*.pickle
+env/**/*matPre*
+env/**/*matVar*
+results/**/checkpoints/
+results/**/cache/
+results/**/embedding_cache/

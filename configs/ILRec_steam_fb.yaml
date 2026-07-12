@@ -1,0 +1,4 @@
+env: SteamEnv-v0
+dataset: steam
+policy_logit_clamp: 15.0
+eval_logit_clamp: 15.0

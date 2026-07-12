@@ -1,0 +1,2 @@
+dataset,env,setting,seed_count,mean_avg_length,std_avg_length,mean_avg_reward,std_avg_reward,mean_avg_return,std_avg_return,pooled_total_length,pooled_total_return,pooled_avg_reward,eval_action_selection,policy_logit_clamp,eval_logit_clamp,combined_termination_reasons
+steam,SteamEnv-v0,FB,5,20.694,1.7046360315328317,4.55440651330688,0.02925147506364087,94.27600000000001,8.119452198270524,10347.0,47138.0,4.555716632840437,sample,15.0,15.0,"{""distance"": 123, ""low_reward"": 357, ""max_turn"": 20}"

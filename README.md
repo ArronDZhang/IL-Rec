@@ -1,252 +1,192 @@
-# ROLeR: Effective Reward Shaping in Offline Reinforcement Learning for Recommender Systems
-
-This repository provides the official PyTorch implementation, reproduction and experiment logs for the paper titled "ROLeR: Effective Reward Shaping in Offline Reinforcement Learning for Recommender Systems." Within this paper, experiments are conducted on four RL environments: ```KuaiEnv-v0```, ```KuaiRand-v0```, ```CoatEnv-v0``` and ```YahooEnv-v0```, whose introduction can be found at [KuaiRec](https://kuairec.com/), [KuaiRand](https://kuairand.com/), [Coat](https://www.cs.cornell.edu/~schnabts/mnar/), and [Yahoo](https://dl.acm.org/doi/10.1145/1639714.1639717).
-
-More details can be found in our [paper](https://arxiv.org/abs/2407.13163). The authors are Yi Zhang, Ruihong Qiu, Jiajun Liu, and Sen Wang.
-
-<div style="text-align: center;">
-    <figure>
-        <img src="figs/Intro.png" alt="introduction" style="zoom:100%;" />
-        <figcaption style="font-size: 14px; color: #555;">The reward estimation error of a world model and ROLeR across different intervals. Our training-free reward shaping constantly outperforms that of the current world model, reaching a higher relative cumulative reward.</figcaption>
-    </figure>
-</div>
+This is the official implementation repository of our paper: Beyond Static LLM Policies: Imitation-Enhanced Reinforcement Learning for Recommendation. Now we introduce the reproduction procedures.
 
 
 
-
-## Installation
-
-1. Clone this repo and enter into the directory:
-
-   ```shell
-   git clone https://github.com/ArronDZhang/ROLeR.git && cd ROLeR
-   ```
-
-2. Our environment can be reproduced with either conda or pip:
-
-   a) with environments.yml [recommended]
-
-   ```bash
-   conda env create -f environment.yml
-   conda activate roler
-   ```
-
-   b) with requirements.txt
-
-   ```shell
-   conda create --name roler python=3.10 -y
-   conda activate roler
-   pip install -r requirements.txt
-   ```
-
-  Note: To avoid potential package conflicts, we choose to use a fixed version of [tianshou](https://github.com/thu-ml/tianshou). Thus, you do not need to manually install it.
+![](./fig/intro.png)
 
 
 
-## Dataset
+## Preliminaries 
 
-1. Download the datasets used in our work:
+### Environment Setup
 
-   ```bash
-   wget https://chongming.myds.me:61364/DORL/environments.tar.gz
-   ```
-
-   Or you can download them manually from [here](https://rec.ustc.edu.cn/share/9fe264f0-ae09-11ed-b9ef-ed1045d76757).
-
-2. Uncompress the downloaded `environments.tar.gz` and put the files in ```ROLeR/```:
-
-   ```bash
-   tar -zxvf environments.tar.gz
-   ```
-
-
-
-## Reproduce
-
-To reproduce the results, we have two main steps. In the first step, we train world models (DeepFM) to provide user and item embeddings for offline model-free RL methods, as well as uncertainty penalties (e.g., MOPO), entropy penalties (e.g., DORL), and reward models for offline model-based RL methods. In the second step, the recommendation policies are trained.
-
-### Step 1: World Model Learning 
+Create the conda environment:
 
 ```bash
-python run_worldModel_IPS.py --env KuaiEnv-v0 --seed 0 --cuda 0 --loss "pointneg" --message "DeepFM-IPS"
-python run_linUCB.py --env KuaiEnv-v0 --num_leave_compute 4 --leave_threshold 0 --epoch 200 --seed 0 --cuda 0 --loss "pointneg" --message "UCB"
-python run_epsilongreedy.py --env KuaiEnv-v0 --num_leave_compute 4 --leave_threshold 0 --epoch 200 --seed 0 --cuda 0 --loss "pointneg" --message "epsilon-greedy"
-python run_worldModel_ensemble.py --env KuaiEnv-v0 --cuda 0 --epoch 5 --loss "pointneg" --message "pointneg"
+cd /path/to/IL-Rec
+conda env create -f environment.yml
+conda activate ilrec
 ```
 
-Note: 
-
-1) The above commands are exammplified with ```KuaiEnv-v0```. To train the world models for KuaiRand, Coat and Yahoo, you just need to change the argument of ```--env``` to ```KuaiRand-v0```, ```CoatEnv-v0``` and ```YahooEnv-v0```, respectively;
-
-2) The arguments of  ```--message``` in the commands are hooks which serve as identifiers for algorithms to retrieve necessary elements in the next step (i.e., recommendation policy learning);
-
-3) After running the commands, the results will be saved in ```ROLeR/saved_models/```.
-
-### Step 2: Recommendation Policy Learning
-
-In this subsection, we offer the commands of training the recommendation policies on each environment. Before we begin, please make sure that the programs in Step 1 are completed.
-
-**KuaiEnv-v0**
+If you already have a compatible [ROLeR](https://github.com/ArronDZhang/ROLeR) environment, install the Python requirements there:
 
 ```bash
-## Model-free
-python run_Policy_SQN.py --env KuaiEnv-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --window_size 3 --read_message "pointneg" --message "SQN"
-python run_Policy_CRR.py --env KuaiEnv-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --window_size 3 --read_message "pointneg" --message "CRR"
-python run_Policy_CQL.py --env KuaiEnv-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --num-quantiles 20 --min-q-weight 10 --window_size 3 --read_message "pointneg" --message "CQL"
-python run_Policy_BCQ.py --env KuaiEnv-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --unlikely-action-threshold 0.6 --window_size 3 --read_message "pointneg" --message "BCQ"
-## Model-based
-python run_Policy_IPS.py --env KuaiEnv-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --lambda_variance 0 --lambda_entropy 0 --window_size 3 --read_message "DeepFM-IPS" --message "IPS"
-python run_Policy_Main.py --env KuaiEnv-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --lambda_variance 0 --lambda_entropy 0 --window_size 3 --read_message "pointneg" --message "MBPO"
-python run_Policy_Main.py --env KuaiEnv-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --lambda_variance 0.05 --lambda_entropy 0 --window_size 3 --read_message "pointneg" --message "MOPO"
-python run_Policy_Main.py --env KuaiEnv-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --lambda_variance 0.05 --lambda_entropy 5 --window_size 3 --read_message "pointneg" --message "DORL"
-
-## Our ROLeR
-python run_Policy_Main.py --env KuaiEnv-v0 --seed 0 --cuda 1 --num_leave_compute 1 --leave_threshold 0 --which_tracker att --reward_handle "cat" --lambda_variance 0.05 --lambda_entropy 5 --window_size 3 --read_message "pointneg" --message "ROLeR" --remark std --scratch True --change_pred_reward True --change_var True --kr 30 --ku 30
+pip install -r requirements.txt
 ```
 
-**KuaiRand-v0**
+Full training uses CUDA. The smoke tests and unit tests do not require GPU, LLaMA weights, or the full matrices.
+
+
+
+### Required External Artifacts
+
+Large artifacts are intentionally not committed. Put them under the repository root with this layout:
+
+```text
+env/
+  amazon/
+    amazon_train.npy
+    amazon_test.npy
+    train_distance_mat.pickle
+    test_distance_mat.pickle
+    amazon_embedding_task.pt
+    datamaps.json
+  steam/
+    steam_train.npy
+    steam_test.npy
+    train_distance_mat.pickle
+    test_distance_mat.pickle
+    steam_embedding_task.pt
+    datamaps.json
+
+environments/ILRec/data/
+  amazon/
+    demo_gpt35.pkl
+    item.csv
+    test.csv
+    train.csv
+    user.csv
+  steam/
+    demo_gpt35.pkl
+    item.csv
+    test.csv
+    train.csv
+    user.csv
+```
+
+The `*_train.npy` and `*_test.npy` files are the precomputed DeepFM `matPre` world-model matrices. The distance matrices are used by the quitting mechanism.
+LLaMA weights are external and are passed through `--embedding-model-path`.
+
+
+
+### Data Preparation
+
+If `environments/ILRec/data/{amazon,steam}` is not already prepared, build the CSV tables from a local source checkout that contains the original ILRec data and `env/` artifacts:
 
 ```bash
-## Model-free
-python run_Policy_SQN.py --env KuaiRand-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --window_size 3 --read_message "pointneg" --message "SQN"
-python run_Policy_CRR.py --env KuaiRand-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --window_size 3 --read_message "pointneg" --message "CRR"
-python run_Policy_CQL.py --env KuaiRand-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --num-quantiles 20 --min-q-weight 10 --window_size 3 --read_message "pointneg" --message "CQL"
-python run_Policy_BCQ.py --env KuaiRand-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --unlikely-action-threshold 0.6 --window_size 3 --read_message "pointneg" --message "BCQ"
-## Model-based
-python run_Policy_IPS.py --env KuaiRand-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --lambda_variance 0 --lambda_entropy 0 --window_size 3 --read_message "DeepFM-IPS" --message "IPS"
-python run_Policy_Main.py --env KuaiRand-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --lambda_variance 0 --lambda_entropy 0 --window_size 3 --read_message "pointneg" --message "MBPO"
-python run_Policy_Main.py --env KuaiRand-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --lambda_variance 0.01 --lambda_entropy 0 --window_size 3 --read_message "pointneg" --message "MOPO"
-python run_Policy_Main.py --env KuaiRand-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --lambda_variance 0.01 --lambda_entropy 0.05 --window_size 3 --read_message "pointneg" --message "DORL"
+python tools/build_ilrec_roler_data.py \
+  --dataset amazon \
+  --ilrec-root /path/to/source-il-rec \
+  --output-root environments/ILRec/data
 
-## Our ROLeR
-python run_Policy_Main.py --env KuaiRand-v0 --seed 0 --cuda 1 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --lambda_variance 0.01 --lambda_entropy 0.05  --window_size 3 --read_message "pointneg"  --message "ROLeR" --remark std --scratch True --change_pred_reward True --change_var True --kr 150 --ku 150 --uncertain_type II-weight-norm
+python tools/build_ilrec_roler_data.py \
+  --dataset steam \
+  --ilrec-root /path/to/source-il-rec \
+  --output-root environments/ILRec/data
 ```
 
-**CoatEnv-v0**
+Build the GPT-3.5 demonstration buffers:
 
 ```bash
-## Model-free
-python run_Policy_SQN.py --env CoatEnv-v0  --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat"  --window_size 3 --read_message "pointneg"  --message "SQN"
-python run_Policy_CRR.py --env CoatEnv-v0  --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat"  --window_size 3 --read_message "pointneg"  --message "CRR"
-python run_Policy_CQL.py --env CoatEnv-v0  --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat"  --num-quantiles 20 --min-q-weight 10 --window_size 3 --read_message "pointneg"  --message "CQL"
-python run_Policy_BCQ.py --env CoatEnv-v0  --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat"  --unlikely-action-threshold 0.6 --window_size 3 --read_message "pointneg"  --message "BCQ"
-## Model-based
-python run_Policy_IPS.py --env CoatEnv-v0  --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --lambda_variance 0 --lambda_entropy 0    --window_size 3 --read_message "DeepFM-IPS"  --message "IPS"
-python run_Policy_Main.py --env CoatEnv-v0  --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --lambda_variance 0 --lambda_entropy 0  --window_size 3 --read_message "pointneg"  --message "MBPO"
-python run_Policy_Main.py --env CoatEnv-v0 --seed 0 --cuda 0  --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --lambda_variance 0.02 --lambda_entropy 0 --window_size 3 --read_message "pointneg"  --message "MOPO"
-python run_Policy_Main.py --env CoatEnv-v0 --seed 0 --cuda 0  --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --lambda_variance 0.005 --lambda_entropy 1 --window_size 3 --read_message "pointneg"  --message "DORL"
+python tools/build_ilrec_demo_buffer.py \
+  --dataset amazon \
+  --ilrec-root /path/to/source-il-rec \
+  --traj-glob '/path/to/source-il-rec/trajs_agent/amazon_train_*.json' \
+  --split train \
+  --embedding-fallback \
+  --model-path /path/to/llama2-7bhf \
+  --output environments/ILRec/data/amazon/demo_gpt35.pkl
 
-## Our ROLeR
-python run_Policy_Main.py --env CoatEnv-v0 --seed 0 --cuda 1 --num_leave_compute 1 --leave_threshold 0 --which_tracker att --reward_handle "cat" --lambda_variance 0.005 --lambda_entropy 1  --window_size 3 --read_message "pointneg"  --message "ROLeR" --scratch True --change_pred_reward True --change_var True --kr 15 --ku 15 --remark std --uncertain_type II-weight-norm
+python tools/build_ilrec_demo_buffer.py \
+  --dataset steam \
+  --ilrec-root /path/to/source-il-rec \
+  --traj-glob '/path/to/source-il-rec/trajs_agent/steam_train_*.json' \
+  --split train \
+  --embedding-fallback \
+  --model-path /path/to/llama2-7bhf \
+  --output environments/ILRec/data/steam/demo_gpt35.pkl
 ```
 
-**YahooEnv-v0**
+Smoke fixtures for tests are included under `environments/ILRec/data_smoke`.
+
+
+
+**Note** that the preliminaries can be done following the README.md of [BiLLP](https://github.com/jizhi-zhang/BiLLP).
+
+
+
+## Train And Evaluate
+
+### Amazon
 
 ```bash
-## Model-free
-python run_Policy_SQN.py --env YahooEnv-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --window_size 3 --read_message "pointneg" --message "SQN"
-python run_Policy_CRR.py --env YahooEnv-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --window_size 3 --read_message "pointneg" --message "CRR"
-python run_Policy_CQL.py --env YahooEnv-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --num-quantiles 10 --min-q-weight 1.0 --window_size 3 --read_message "pointneg" --message "CQL"
-python run_Policy_BCQ.py --env YahooEnv-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --unlikely-action-threshold 0.6 --window_size 3 --read_message "pointneg" --message "BCQ"
-
-## Model-based
-python run_Policy_IPS.py --env YahooEnv-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --lambda_variance 0 --lambda_entropy 0 --window_size 3 --read_message "DeepFM-IPS" --message "IPS"
-python run_Policy_Main.py --env YahooEnv-v0  --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --lambda_variance 0 --lambda_entropy 0 --window_size 3 --read_message "pointneg" --message "MBPO"
-python run_Policy_Main.py --env YahooEnv-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --lambda_variance 0.01 --lambda_entropy 0 --window_size 3 --read_message "pointneg" --message "MOPO"
-python run_Policy_Main.py --env YahooEnv-v0 --seed 0 --cuda 0 --num_leave_compute 1 --leave_threshold 0 --which_tracker avg --reward_handle "cat" --lambda_variance 0.01 --lambda_entropy 1 --window_size 3 --read_message "pointneg" --message "DORL"
-
-## Our ROLeR
-python run_Policy_Main.py --env YahooEnv-v0 --seed 0 --cuda 1 --num_leave_compute 1 --leave_threshold 0 --which_tracker att --reward_handle "cat" --lambda_variance 0.005 --lambda_entropy 1  --window_size 5 --read_message "pointneg"  --message "ROLeR" --scratch True --change_pred_reward True --change_var True --kr 20 --ku 20 --remark std --uncertain_type II-weight-norm
+python run_Policy_ILRec.py \
+  --env AmazonEnv-v0 \
+  --demo-buffer environments/ILRec/data/amazon/demo_gpt35.pkl \
+  --ilrec-root . \
+  --embedding-model-path /path/to/llama2-7bhf \
+  --state-action-cache-path saved_models/AmazonEnv-v0/ILRec/amazon_state_action_embeddings.pt \
+  --output-dir saved_models/AmazonEnv-v0/ILRec \
+  --summary-json results/ILRec/amazon/standard_100users_fb_summary.json \
+  --rollout-json results/ILRec/amazon/standard_100users_fb_rollouts.json \
+  --eval-users-json results/ILRec/amazon/standard_100users_userids.json \
+  --seed 0 \
+  --cuda 0
 ```
 
-Note: After running the above commands, the results will also be saved in ```ROLeR/saved_models/```.
+The checkpoint is written under `saved_models/AmazonEnv-v0/ILRec/checkpoints/`.
 
-### Brief Introduction of Arguments and Logs
+### Steam
 
-#### Arguments Introduction
-
-- Arguments like ```--seed``` and ```--cuda``` are easy to understand;
-
-- As for ```--num_leave_compute``` and ```--leave_threshold```, recalling that in the experiment setting part in our paper, one temination condition of user-RecSys interaction is that "the interaction will terminate when a user receives 𝑀 items of the same category in the recent 𝑁 transitions." Here N is represented by ```--num_leave_compute``` and N is given by ```--leave_threshold```;
-- ```--which tracker``` specifies the type of StateTracker introduced in the method section (i.e., Sec 4.3). ```--reward_handle``` indicates the way of integrading the rewards into states, and ```--window_size``` decides the number of recent transitions when computing the next state in the StateTracker;
-- ```--lambda_variance``` and ```--lambda_entropy``` specifies the coefficients of uncertainty penalty and entropy penalty in the reward model;
-- ```--read_message``` relates to the hook mentioned before which is used to specify that which specifies the world model used in policy learning; and ```--message``` is used to indicate the algorithm;
-- For the rest arguments are the ones newly introduced in ROLeR:
-- ```--scratch``` decides whether to initialize the item embedding in the policy learning stage, i.e., whether to use the item embedding learned in the world model learning stage;
-- ```--change_pred_reward``` and ```--change_var``` means whether to reshape the reward models in the world models and change the uncertainty penalties computed with an ensemble of world models, respectively;
-- If the reward models need reshaping, ```--kr``` specifies the number of neighbors during reshaping and ```--ku``` has similar meaning when computing the new uncertainty penalty;
-- ```--uncern_type``` decides the way of computing the uncertainty penalty. The variants in our experiment section (i.e., Sec 6.4) can be explored through this argument.
-
-#### Logs
-
-In the log files, they begin with the information of all hyperparameters, then the learning summary of each epoch is exhibited. For instance:
-
-```
-[I 240730 00:27:12 utils:142] Epoch: [7], Info: [{'num_test': 100, 'CV': '0.01323', 'CV_turn': '0.02480', 'ctr': '0.91395', 'len_tra': 17.74, 'R_tra': 16.21351899179315, 'ifeat_feat': 0.46561443066516345, 'NX_0_CV': '0.02104', 'NX_0_CV_turn': '0.02625', 'NX_0_ctr': '0.86991', 'NX_0_len_tra': 26.67, 'NX_0_R_tra': 23.200455494459856, 'NX_0_ifeat_feat': 0.44956880389951254, 'NX_10_CV': '0.01443', 'NX_10_CV_turn': '0.04800', 'NX_10_ctr': '0.90791', 'NX_10_len_tra': 10.0, 'NX_10_R_tra': 9.079061016921857, 'NX_10_ifeat_feat': 0.452}]
+```bash
+python run_Policy_ILRec.py \
+  --env SteamEnv-v0 \
+  --demo-buffer environments/ILRec/data/steam/demo_gpt35.pkl \
+  --ilrec-root . \
+  --embedding-model-path /path/to/llama2-7bhf \
+  --state-action-cache-path saved_models/SteamEnv-v0/ILRec/steam_state_action_embeddings.pt \
+  --output-dir saved_models/SteamEnv-v0/ILRec \
+  --summary-json results/ILRec/steam/standard_100users_fb_summary.json \
+  --rollout-json results/ILRec/steam/standard_100users_fb_rollouts.json \
+  --eval-users-json results/ILRec/steam/standard_100users_userids.json \
+  --seed 0 \
+  --cuda 1
 ```
 
-In this summary, **NX_0_R_tra** stands for the average cumulative reward across 100 testing trajectories. Similarly,  **NX_0_len_tra** and **NX_0_ctr** specifiy the average interaction length and single-step reward, respectively.
+The checkpoint is written under `saved_models/SteamEnv-v0/ILRec/checkpoints/`.
 
-For your convenience, we have collected all the log files in the main experiment in ```results_for_paper/main_exp_logs```, namely:
 
-```
-main_exp_logs
-├── KuaiRec
-│   ├── [BCQ-leave4]_2023_01_17-19_28_01.log
-│   ├── [CQL-leave4]_2023_01_17-19_28_01.log
-│   ├── [CRR-leave4]_2023_01_17-19_28_00.log
-│   ├── [DORL]_2023_01_18-17_45_45.log
-│   ├── [epsilon-greedy]_2023_01_18-18_17_21.log
-│   ├── [GT Reward]_2024_01_09-01_50_40_att3_init_real_rew.log
-│   ├── [IPS-leave4]_2023_01_17-19_28_00.log
-│   ├── [MBPO]_2023_01_18-17_45_45.log
-│   ├── [MOPO]_2023_01_18-17_45_45.log
-│   ├── [ROLeR]_2024_02_07-19_27_10_ROLeR_KuaiRec_best.log
-│   ├── [SQN-leave4]_2023_01_17-19_28_01.log
-│   ├── [UCB]_2023_01_18-18_17_21.log
-│   └── CIRS_epoch200.log
-├── KuaiRand
-│   ├── [BCQ-leave4]_2023_01_17-19_28_00.log
-│   ├── [CQL-leave4]_2023_01_17-19_28_01.log
-│   ├── [CRR-leave4]_2023_01_17-19_28_01.log
-│   ├── [DORL]_2023_01_19-08_20_56.log
-│   ├── [epsilon-greedy]_2023_01_18-18_17_22.log
-│   ├── [GT Reward]_2024_01_25-16_47_00_avg3_init_real_rewardv2.log
-│   ├── [IPS-leave4]_2023_01_17-19_28_00.log
-│   ├── [MBPO]_2023_01_18-17_45_46.log
-│   ├── [MOPO]_2023_01_19-08_21_04.log
-│   ├── [ROLeR]_2024_05_11-12_33_29_k30II-weight-norm.log
-│   ├── [SQN-leave4]_2023_01_17-19_28_00.log
-│   └── [UCB]_2023_01_18-18_17_21.log
-├── Coat
-│   ├── [BCQ]_2024_04_13-22_34_43.log
-│   ├── [CQL]_2024_04_13-22_04_59.log
-│   ├── [CRR]_2024_04_13-21_42_50.log
-│   ├── [DORL]_2024_01_26-14_29_23_U0.005.log
-│   ├── [epsilon-greedy]_2024_04_13-19_54_40.log
-│   ├── [GT Reward]_2024_05_19-15_15_39_GT_rew_pro.log
-│   ├── [IPS]_2024_04_13-23_04_41.log
-│   ├── [MBPO]_2024_04_14-00_34_26.log
-│   ├── [MOPO_U0.2]_2024_04_14-12_43_51.log
-│   ├── [ROLeR]_2024_05_19-12_09_53_weight_k15
-│   ├── [SQN]_2024_04_13-21_15_54
-│   └── [UCB]_2024_04_13-18_30_57
-├── Yahoo
-│   ├── [BCQ]_2024_04_14-13_40_13.log
-│   ├── [CQL]_2024_05_20-03_45_03.log
-│   ├── [CRR]_2024_04_14-12_35_47.log
-│   ├── [DORL]_2024_01_26-14_47_18_U0.01.log
-│   ├── [epsilon-greedy]_2024_04_14-06_17_41.log
-│   ├── [GT Reward]_2024_05_18-15_38_17_GT_rew.log
-│   ├── [IPS]_2024_04_14-14_13_18.log
-│   ├── [MBPO]_2024_04_14-14_49_05.log
-│   ├── [MOPO_U0.05]_2024_04_14-15_59_58.log
-│   ├── [ROLeR]_2024_05_19-10_41_39_weight_k20.log
-│   ├── [SQN]_2024_04_14-12_03_27.log
-│   └── [UCB]_2024_04_14-00_31_31.log
+
+## Released Results
+
+Our evaluation setting follows [BiLLP](https://github.com/jizhi-zhang/BiLLP). Since the test setting contains only 100 users, results may vary substantially across random seeds. Although the original five seed sets for each dataset are no longer available, our reproduced results are no worse than those reported in the paper on both the test sets corresponding to the released [BiLLP](https://github.com/jizhi-zhang/BiLLP) result files and five newly sampled seed sets. Reference results are provided below.
+
+The public `results/` tree contains only the final Amazon and Steam outputs:
+
+```text
+results/ILRec/amazon/
+  standard_100users_userids.json
+  standard_100users_fb_summary.json
+  standard_100users_fb_rollouts.json
+  fb_5seeds_summary.json
+  fb_5seeds_summary.csv
+
+results/ILRec/steam/
+  standard_100users_userids.json
+  standard_100users_fb_summary.json
+  standard_100users_fb_rollouts.json
+  fb_5seeds_summary.json
+  fb_5seeds_summary.csv
 ```
 
-Note: for all the baselines in [DORL](https://arxiv.org/pdf/2307.04571.pdf) on KuaiRec and KuaiRand, as we can reproduce their results, we reuse the logs in [DORL's repo](https://github.com/chongminggao/DORL-codes/tree/main/results_for_paper/results_all).
+Current public metrics:
+
+| Dataset | Scope | Avg length | Avg reward | Avg return |
+| --- | --- | ---: | ---: | ---: |
+| Amazon | standard 100 users, seed 0 | `11.49` | `4.583986074847694` | `52.67` |
+| Amazon | 5 seeds | `11.66` | `4.562101797565839` | `53.202` |
+| Steam | standard 100 users, seed 0 | `21.27` | `4.592383638928068` | `97.68` |
+| Steam | 5 seeds | `20.694` | `4.55440651330688` | `94.27600000000001` |
 
 
 
@@ -255,32 +195,41 @@ Note: for all the baselines in [DORL](https://arxiv.org/pdf/2307.04571.pdf) on K
 If you find this repo useful, please cite
 
 ```tex
+@inproceedings{yi2025ilrec,
+  author       = {Zhang, Yi and Xie, Lili and Qiu, Ruihong and Liu, Jiajun and Wang, Sen},
+  title        = {Beyond Static {LLM} Policies: Imitation-Enhanced Reinforcement Learning
+                  for Recommendation},
+  booktitle    = {{IEEE} International Conference on Data Mining (ICDM)},
+  pages        = {903--912},
+  year         = {2025}
+}
+```
+
+
+
+## Acknowledge
+
+Our LLM demonstration is based on BiLLP, whose BibTeX is:
+
+```tex
+@inproceedings{shi2024billp,
+author = {Shi, Wentao and He, Xiangnan and Zhang, Yang and Gao, Chongming and Li, Xinyue and Zhang, Jizhi and Wang, Qifan and Feng, Fuli},
+title = {Large Language Models are Learnable Planners for Long-Term Recommendation},
+year = {2024},
+booktitle = {Proceedings of the 47th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR)},
+pages = {1893–1903},
+}
+```
+
+Our codebase is based on ROLeR, whose BibTeX is:
+
+```tex
 @inproceedings{zhang2024roler,
   title={ROLeR: Effective Reward Shaping in Offline Reinforcement Learning for Recommender Systems},
   author={Zhang, Yi and Qiu, Ruihong and Liu, Jiajun and Wang, Sen},
   booktitle={Proceedings of the 33rd ACM International Conference on Information and Knowledge Management},
   pages={3269--3278},
   year={2024}
-}
-```
-
-
-
-## Acknowledgement
-
-Our code is based on [DORL's repo](https://github.com/chongminggao/DORL-codes). The BibTex for DORL is:
-
-```tex
-@inproceedings{gao2023alleviating,
-  title = {Alleviating Matthew Effect of Offline Reinforcement Learning in Interactive Recommendation},
-  author = {Gao, Chongming and Huang, Kexin and Chen, Jiawei and Zhang, Yuan and Li, Biao and Jiang, Peng and Wang, Shiqi and Zhang, Zhong and He, Xiangnan},
-  booktitle = {Proceedings of the 46th International ACM SIGIR Conference on Research and Development in Information Retrieval},
-  series = {SIGIR '23},
-  location = {Taipei, Taiwan},
-  url = {https://doi.org/10.1145/3539618.3591636},
-  doi = {10.1145/3539618.3591636},
-  numpages = {11},
-  year = {2023}
 }
 ```
 

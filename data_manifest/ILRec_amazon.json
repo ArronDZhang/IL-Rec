@@ -1,0 +1,21 @@
+{
+  "dataset": "amazon",
+  "required_external_files": [
+    "env/amazon/amazon_train.npy",
+    "env/amazon/amazon_test.npy",
+    "env/amazon/train_distance_mat.pickle",
+    "env/amazon/test_distance_mat.pickle",
+    "env/amazon/amazon_embedding_task.pt",
+    "env/amazon/datamaps.json",
+    "env/amazon/amazon_grounding_cache.json",
+    "environments/ILRec/data/amazon/demo_gpt35.pkl",
+    "environments/ILRec/data/amazon/item.csv",
+    "environments/ILRec/data/amazon/test.csv",
+    "environments/ILRec/data/amazon/train.csv",
+    "environments/ILRec/data/amazon/user.csv"
+  ],
+  "notes": [
+    "Large reward matrices, distance matrices, embeddings, and demo buffers are external artifacts and are not committed.",
+    "The public repository includes only smoke data under environments/ILRec/data_smoke."
+  ]
+}

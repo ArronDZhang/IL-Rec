@@ -1,0 +1,12 @@
+setting: FB
+train_episodes: 100000
+discount: 0.5
+train_action_selection: sample
+eval_action_selection: sample
+mixed_replay_sampling: global_priority
+mixed_replay_env_priority_scale: 0.05
+train_normalize_advantages: true
+train_advantage_clip: 5.0
+train_actor_row_norm_project: 10.0
+train_actor_bias_clamp: 5.0
+policy_logit_clamp_mode: tanh

@@ -1,0 +1,50 @@
+{
+  "combined_termination_reasons": {
+    "distance": 123,
+    "low_reward": 357,
+    "max_turn": 20
+  },
+  "config": {
+    "discount": 0.5,
+    "env": "SteamEnv-v0",
+    "eval_action_selection": "sample",
+    "eval_logit_clamp": 15.0,
+    "mixed_replay_env_priority_scale": 0.05,
+    "mixed_replay_sampling": "global_priority",
+    "policy_logit_clamp": 15.0,
+    "policy_logit_clamp_mode": "tanh",
+    "setting": "FB",
+    "train_action_selection": "sample",
+    "train_actor_bias_clamp": 5.0,
+    "train_actor_row_norm_project": 10.0,
+    "train_advantage_clip": 5.0,
+    "train_episodes": 100000,
+    "train_normalize_advantages": true
+  },
+  "dataset": "steam",
+  "env": "SteamEnv-v0",
+  "eval_action_selection": "sample",
+  "eval_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "evaluation_scope": "5_eval_seeds_on_standard_100users",
+  "mean_avg_length": 20.694,
+  "mean_avg_return": 94.27600000000001,
+  "mean_avg_reward": 4.55440651330688,
+  "mean_repeat_after_first_rate": 0.07452345806914698,
+  "mean_unique_actions": 770.4,
+  "mean_unique_first_actions": 86.6,
+  "method": "ILRec",
+  "pooled_avg_reward": 4.555716632840437,
+  "pooled_total_length": 10347.0,
+  "pooled_total_return": 47138.0,
+  "seed_count": 5,
+  "setting": "FB",
+  "std_avg_length": 1.7046360315328317,
+  "std_avg_return": 8.119452198270524,
+  "std_avg_reward": 0.02925147506364087
+}
