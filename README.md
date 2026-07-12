@@ -1,3 +1,5 @@
+# Beyond Static LLM Policies: Imitation-Enhanced Reinforcement Learning for Recommendation
+
 This is the official implementation repository of our paper: Beyond Static LLM Policies: Imitation-Enhanced Reinforcement Learning for Recommendation. Now we introduce the reproduction procedures.
 
 
