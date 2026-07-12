@@ -209,7 +209,7 @@ If you find this repo useful, please cite
 
 
 
-## Acknowledge
+## Acknowledgement
 
 Our LLM demonstration is based on BiLLP, whose BibTeX is:
 
